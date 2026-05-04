@@ -1,0 +1,56 @@
+go mod init go-lxd-vm-dashboard
+
+go get github.com/hashicorp/vault/api
+
+go get github.com/canonical/lxd/client
+go get github.com/canonical/lxd/shared/api
+
+docker build -t go-lxd-vm-dashboard:latest .
+
+docker save go-lxd-vm-dashboard > go-lxd-vm-dashboard.tar
+microk8s ctr image import go-lxd-vm-dashboard.tar
+
+
+Bash
+docker build -t go-lxd-vm-dashboard:latest .
+Step 2: Load the Image into MicroK8s
+Export the image from your local Docker daemon and import it directly into MicroK8s:
+
+Bash
+docker save go-lxd-vm-dashboard:latest > go-lxd-vm-dashboard.tar
+microk8s ctr image import go-lxd-vm-dashboardp.tar
+
+microk8s helm upgrade --install go-lxd-vm-dashboard ./helm-chart --namespace dev
+
+
+
+microk8s kubectl create namespace dev
+
+microk8s kubectl create secret generic openbao-creds \
+  --from-literal=VAULT_ADDR=https://10.248.42.125:8200 \
+  --from-literal=VAULT_ROLE_ID=99f070cb-f0cc-cd3d-bc55-2ac2a23b90bc \
+  --from-literal=VAULT_SECRET_ID=4e17b858-475e-cfa8-d03a-bbd2337c8450 \
+  --namespace=dev
+
+
+  # Update Helm chart
+microk8s helm upgrade --install go-lxd-vm-dashboard ./helm-chart --namespace dev
+
+# Force restart to refresh environment variables
+microk8s kubectl rollout restart deployment go-lxd-vm-dashboard -n dev
+
+
+. Deploy & Verify
+Build/Push Image:
+
+Bash
+docker build -t localhost:32000/go-lxd-vm-dashboard:latest .
+docker push localhost:32000/go-lxd-vm-dashboard:latest
+Restart the Pod:
+
+Bash
+microk8s kubectl rollout restart deployment go-lxd-vm-dashboard -n dev
+
+future:
+// Switch to a different project
+client = client.UseProject("production")
