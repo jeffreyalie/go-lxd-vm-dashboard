@@ -16,9 +16,42 @@ A lightweight Go web application that displays the live status of LXD instances 
 ## Architecture
 
 ```
+                         ┌────────────────────┐
+                         │     index.html     │
+                         └─────────┬──────────┘
+                                   │
+                                   ▼
+                         ┌────────────────────┐
+                         │      Browser       │
+                         └─────────┬──────────┘
+                                   │
+                                   ▼
+                         ┌────────────────────┐
+                         │  Ingress (NGINX)   │
+                         └─────────┬──────────┘
+                                   │
+                                   ▼
+                         ┌────────────────────┐
+                         │      Service       │
+                         └─────────┬──────────┘
+                                   │
+                                   ▼
+                         ┌────────────────────┐
+                         │   Pod (MicroK8s)   │
+                         └─────────┬──────────┘
+                                   │
+             ┌─────────────────────┴─────────────────────┐
+             │                                           │
+             ▼                                           ▼
+┌──────────────────────────────┐         ┌──────────────────────────────┐
+│ Fetch TLS cert/key           │         │ Query LXD API                │
+│ from OpenBao (AppRole)       │         │ (LXD Server)                 │
+└──────────────────────────────┘         └──────────────────────────────┘
+
 Browser → Ingress (nginx) → Service → Pod
                                         ├── Fetches TLS cert/key from OpenBao (AppRole)
                                         └── Queries LXD API → renders index.html
+
 ```
 
 Vault credentials (`VAULT_ADDR`, `VAULT_ROLE_ID`, `VAULT_SECRET_ID`) are injected via a Kubernetes Secret. The LXD address is set through `values.yaml`.
